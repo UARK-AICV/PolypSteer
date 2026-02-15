@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medsteer"
+version = "0.1.0"
+description = "MedSteer: Cross-Attention Guided Steering for Medical Image Diffusion Models"
+readme = "README.md"
+license = {text = "CC BY-NC 4.0"}
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1.0",
+    "torchvision>=0.16.0",
+    "transformers",
+    "accelerate",
+    "huggingface_hub",
+    "peft>=0.13.1",
+    "sentencepiece>=0.1.99",
+    "ftfy",
+    "beautifulsoup4",
+    "einops",
+    "pandas",
+    "numpy",
+    "Pillow",
+    "tqdm",
+    "timm>=0.6.12",
+    "pytorch-lightning",
+    "torchmetrics",
+    "scikit-learn",
+    "scipy",
+    "tensorboard",
+]
+
+[project.optional-dependencies]
+xformers = ["xformers"]
+dev = ["ruff"]
+
+[tool.setuptools.packages.find]
+include = ["medsteer*"]

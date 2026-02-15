@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Model checkpoints and generated data
+checkpoint-*/
+outputs/
+tmp/
+*.ckpt
+*.safetensors
+*.bin
+
+# Generated images
+generated_images/
+images/
+*.png
+*.jpg
+*.jpeg
+
+# Stats
+*.npz
+
+# Logs
+*.log
+tensorboard/
+wandb/
+csv_logs/
+tb_logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dataset (too large for git)
+dataset/
+
+# Diffusers build artifacts
+diffusers/build/
+diffusers/*.egg-info/
