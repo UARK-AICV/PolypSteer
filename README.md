@@ -1,4 +1,6 @@
-# PolypSteer
+# PolypSteer: Counterfactual Endoscopic Synthesis via Training-Free Activation Steering
+
+[arXiv:2603.07066](https://arxiv.org/abs/2603.07066)
 
 PolypSteer produces same-seed counterfactual endoscopy images by modifying selected PixArt-α cross-attention outputs during denoising. The implementation follows the Spatially Selective Pathology Steering protocol with a dedicated counterfactual sampler.
 
