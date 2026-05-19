@@ -1,13 +1,13 @@
-# MedSteer: Counterfactual Endoscopic Synthesis via Training-Free Activation Steering
+# PolypSteer: Counterfactual Endoscopic Synthesis via Training-Free Activation Steering
 
-**MedSteer** is a training-free method for steering a fine-tuned Diffusion Transformer (DiT) at inference time, enabling controllable counterfactual synthesis of endoscopic images.
-Given a base model fine-tuned on the [Kvasir](https://datasets.simula.no/kvasir/) endoscopy dataset, MedSteer intercepts cross-attention activations inside the transformer blocks and shifts them along concept directions computed from cached activations — with no additional training required.
+**PolypSteer** is a training-free method for steering a fine-tuned Diffusion Transformer (DiT) at inference time, enabling controllable counterfactual synthesis of endoscopic images.
+Given a base model fine-tuned on the [Kvasir](https://datasets.simula.no/kvasir/) endoscopy dataset, PolypSteer intercepts cross-attention activations inside the transformer blocks and shifts them along concept directions computed from cached activations — with no additional training required.
 
 ---
 
 ## Overview
 
-Medical image generation benefits from the ability to synthesize counterfactual examples: images that are realistic but reflect a different clinical finding than the original. MedSteer achieves this by:
+Medical image generation benefits from the ability to synthesize counterfactual examples: images that are realistic but reflect a different clinical finding than the original. PolypSteer achieves this by:
 
 1. **Capturing** cross-attention activations from the DiT when generating real and pathological prompts.
 2. **Computing** a direction vector per denoising step and transformer block as the mean difference between two concept classes.
@@ -20,13 +20,13 @@ The base generative model is [PixArt-α (PixArt-XL-2-512x512)](https://huggingfa
 ## Repository Structure
 
 ```
-medsteer/
-├── medsteer/                  # Core library
+PolypSteer/
+├── PolypSteer/                  # Core library
 │   ├── capture.py             # ActivationRecorder — records activations per step/block
 │   ├── directions.py          # compute_directions — mean-difference direction vectors
 │   ├── hooks.py               # attach_hooks — monkey-patches DiT transformer blocks
 │   ├── modulator.py           # AttentionModulator — suppress / record logic
-│   ├── pipeline.py            # MedSteerPipeline — high-level generation API
+│   ├── pipeline.py            # PolypSteerPipeline — high-level generation API
 │   ├── losses.py              # color_distribution_loss — color consistency loss for LoRA
 │   ├── classifier/            # KvasirClassifier (timm ConvNeXt-L, 8-class)
 │   ├── evaluation/            # FID computation, classifier-based evaluation
@@ -43,7 +43,7 @@ medsteer/
 ├── configs/
 │   └── accelerate_config.yaml # Multi-GPU Accelerate configuration
 ├── run_steer.sh               # End-to-end demo script
-├── test_medsteer.py           # Unit and integration tests
+├── test_PolypSteer.py           # Unit and integration tests
 ├── pyproject.toml
 └── requirements.txt
 ```
@@ -86,7 +86,7 @@ This operation preserves the original activation norm.
 # Install the vendored diffusers fork
 pip install -e diffusers/
 
-# Install MedSteer and all dependencies
+# Install PolypSteer and all dependencies
 pip install -e ".[dev]"
 ```
 
@@ -106,20 +106,20 @@ Run the cells below in Google Colab or any Jupyter environment (GPU recommended)
 ```python
 import subprocess, sys
 
-subprocess.run(["git", "clone", "https://github.com/phamtrongthang123/medsteer"], check=True)
+subprocess.run(["git", "clone", "https://github.com/phamtrongthang123/PolypSteer"], check=True)
 
 # Install the vendored diffusers fork without touching other packages
 subprocess.run([
     sys.executable, "-m", "pip", "install", "-q",
-    "--no-deps", "medsteer/diffusers/",
+    "--no-deps", "PolypSteer/diffusers/",
 ], check=True)
 
-# Install medsteer + remaining deps (peft, timm, …)
+# Install PolypSteer + remaining deps (peft, timm, …)
 # Pin transformers to a version that still exports FLAX_WEIGHTS_NAME
 subprocess.run([
     sys.executable, "-m", "pip", "install", "-q",
     "transformers>=4.41.2,<4.46",
-    "medsteer/",
+    "PolypSteer/",
 ], check=True)
 ```
 
@@ -134,17 +134,17 @@ if not hasattr(_tu, "FLAX_WEIGHTS_NAME"):
     _tu.FLAX_WEIGHTS_NAME = "diffusion_flax_model.msgpack"
 
 from huggingface_hub import snapshot_download
-from medsteer import MedSteerPipeline
+from PolypSteer import PolypSteerPipeline
 
 # ── 1. Download the LoRA checkpoint from the Hub ──────────────────────────────
 lora_path = snapshot_download(
-    repo_id="phamtrongthang/medsteer",
-    local_dir="medsteer_ckpt",
+    repo_id="phamtrongthang/PolypSteer",
+    local_dir="PolypSteer_ckpt",
 )
 # lora_path now contains  transformer_lora/  and  text_encoder_lora/
 
 # ── 2. Load the model ─────────────────────────────────────────────────────────
-pipe = MedSteerPipeline.from_pretrained(
+pipe = PolypSteerPipeline.from_pretrained(
     model_id="PixArt-alpha/PixArt-XL-2-512x512",
     lora_path=lora_path,
     device="cuda" if torch.cuda.is_available() else "cpu",
@@ -285,10 +285,10 @@ python scripts/evaluate_classifier.py \
 ### Programmatic API
 
 ```python
-from medsteer import MedSteerPipeline, load_directions
+from PolypSteer import PolypSteerPipeline, load_directions
 
 # Load model
-pipe = MedSteerPipeline.from_pretrained(
+pipe = PolypSteerPipeline.from_pretrained(
     model_id="PixArt-alpha/PixArt-XL-2-512x512",
     lora_path="outputs/lora_kvasir/checkpoint-best-acc",
     device="cuda",
@@ -315,7 +315,7 @@ image.save("suppressed.png")
 The classifier (ConvNeXt-L via `timm`) is used for classifier-guided training validation and for evaluating generated images.
 
 ```bash
-python -m medsteer.classifier.train_classifier \
+python -m PolypSteer.classifier.train_classifier \
     --csv_path /path/to/kvasir/metadata.csv \
     --data_root /path/to/kvasir/images \
     --output_dir outputs/classifier \
@@ -329,10 +329,10 @@ python -m medsteer.classifier.train_classifier \
 
 ```bash
 # CPU unit tests (fast)
-python test_medsteer.py
+python test_PolypSteer.py
 
 # Full integration tests (requires GPU and model checkpoint)
-python test_medsteer.py --gpu
+python test_PolypSteer.py --gpu
 ```
 
 Test coverage includes: `AttentionModulator` modes (passthrough, record, suppress), `color_distribution_loss`, direction vector save/load, FID computation, `FeatureStats`, and grid visualization utilities.
